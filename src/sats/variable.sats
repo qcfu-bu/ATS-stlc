@@ -15,3 +15,10 @@ fun prerr_variable : variable -> void
 overload fprint with fprint_variable
 overload print with print_variable
 overload prerr with prerr_variable
+
+absvtype vmap (a : type) = ptr
+
+exception vmap_find of string
+
+fun{a:type} empty : () -> vmap(a)
+fun{a:type} find : (variable, !vmap(a)) -> Option_vt a

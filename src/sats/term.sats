@@ -1,5 +1,5 @@
 #staload "./variable.sats"
-#staload "libats/SATS/hashtbl_linprb.sats"
+#staload "libats/SATS/hashtbl_chain.sats"
 
 abstype abs
 
@@ -15,7 +15,7 @@ datatype tm =
 fun bind : (variable, tm) -> abs
 fun unbind : abs -> (variable, tm)
 fun subst : (variable, tm, tm) -> tm
-fun msubst : (!hashtbl(variable, tm), tm) -> tm
+fun msubst : (!vmap(tm), tm) -> tm
 
 fun fprint_tm : (FILEref, tm) -> void
 fun print_tm : tm -> void

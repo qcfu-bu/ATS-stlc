@@ -1,22 +1,21 @@
 #include "share/atspre_staload.hats"
 #staload "./../sats/variable.sats"
-#staload "./variable.dats"
+#staload _ = "./variable.dats"
 #staload "./../sats/term.sats"
-#staload "libats/SATS/hashtbl_linprb.sats"
-#staload "libats/DATS/hashtbl_linprb.dats"
 #define ATS_DYNLOADFLAG 0
+#staload "libats/ML/SATS/hashtblref.sats"
 
 local
   datatype abs_t = Abs of (variable, tm)
   assume abs = abs_t
 in
-  fun {a:type}findi_opt(f : a -<cloref1> bool, ls : List a) : Option@([n:nat]int(n), a) = let
-    fun aux{k:nat}(k : int(k), ls : List a) : Option@([n:nat]int(n), a) =
+  fun {a:type}findi_opt(f : a -<cloref1> bool, ls : List a) : Option_vt@([n:nat]int(n), a) = let
+    fun aux{k:nat}(k : int(k), ls : List a) : Option_vt@([n:nat]int(n), a) =
       case ls of
-      | nil() => None
+      | nil() => None_vt
       | cons(h, t) =>
         if f(h) then
-          Some@(k, h)
+          Some_vt@(k, h)
         else
           aux(k + 1, t)
   in
@@ -30,8 +29,8 @@ in
           val opt = findi_opt<variable>(lam x => equal(x, y), xs)
         in
           case opt of
-          | Some@(i, _) => Var (bound (i + k))
-          | _ => Var y
+          | ~Some_vt@(i, _) => Var (bound (i + k))
+          | ~None_vt() => Var y
         end
       | Lam(a, Abs (x, b)) => let
           val b = aux (k + 1, b)
@@ -82,26 +81,21 @@ in
     (x, unbindn (0, $list (x), m))
   end
 
-  implement msubst (tbl, m) : tm =
+  implement msubst (vmap, m) : tm =
     case m of
-    | Var y => let
-        var res : tm?
-        val ans = hashtbl_search<variable,tm>(tbl, y, res)
-      in
-        if ans then 
-          opt_unsome_get res
-        else
-          let prval () = opt_unnone res in Var y end
-      end
+    | Var y => (
+        case find<tm>(y, vmap) of
+        | ~Some_vt n => n
+        | ~None_vt () => Var y)
     | Lam (a, abs) => let
         val (x, m) = unbind abs
-        val m = msubst (tbl, m)
+        val m = msubst (vmap, m)
       in
         Lam (a, bind (x, m))
       end
     | App (m, n) => let
-        val m = msubst (tbl, m)
-        val n = msubst (tbl, n)
+        val m = msubst (vmap, m)
+        val n = msubst (vmap, n)
       in
         App (m, n)
       end

@@ -1,6 +1,8 @@
 #include "share/atspre_staload.hats"
 #staload "./../sats/variable.sats"
-#staload "libats/SATS/hashtbl_linprb.sats"
+#staload "libats/SATS/hashfun.sats"
+#staload "libats/SATS/hashtbl_chain.sats"
+#staload _ = "libats/DATS/hashtbl_chain.dats"
 #staload UN = "prelude/SATS/unsafe.sats"
 
 local
@@ -9,6 +11,7 @@ local
     | Free of (string, Int)
 
   assume variable = variable_t
+  assume vmap (a) = hashtbl(int, a)
 
   val stamp = ref<Int>(0)
 in
@@ -46,9 +49,6 @@ in
         None
     | Free _ => None
 
-  implement hash_key<variable>(x) = $UN.cast2ulint (x)
-  implement equal_key_key<variable>(x, y) = equal (x, y)
-
   implement fprint_val<variable> = fprint_variable
 
   implement fprint_variable (out, x) =
@@ -58,4 +58,21 @@ in
 
   implement print_variable (x) = fprint_variable (stdout_ref, x)
   implement prerr_variable (x) = fprint_variable (stderr_ref, x)
+
+  implement{key} equal_key_key = gequal_val_val<key>
+
+  implement hash_key<int>(id) = let
+    val key = $UN.cast{uint32}(id)
+  in
+    $UN.cast{ulint}(inthash_jenkins<>(key))
+  end
+
+  implement{a} empty () =
+    hashtbl_make_nil<int,a>(i2sz(200))
+
+  implement{a} find (x, tbl) =
+    case x of
+    | Bound _ => None_vt
+    | Free (_, id) =>
+      hashtbl_search_opt<int,a>(tbl, id)
 end
