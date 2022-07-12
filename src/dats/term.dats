@@ -3,7 +3,6 @@
 #staload _ = "./variable.dats"
 #staload "./../sats/term.sats"
 #define ATS_DYNLOADFLAG 0
-#staload "libats/ML/SATS/hashtblref.sats"
 
 local
   datatype abs_t = Abs of (variable, tm)
